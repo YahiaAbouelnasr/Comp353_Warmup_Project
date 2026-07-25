@@ -1,61 +1,41 @@
 USE wfc353_1;
 
-SELECT COUNT(*) AS LocationsCount
-FROM Locations;
-
-SELECT COUNT(*) AS LocationPhonesCount
-FROM LocationPhones;
-
-SELECT COUNT(*) AS PersonnelCount
-FROM Personnel;
-
-SELECT COUNT(*) AS FamilyMembersCount
-FROM FamilyMembers;
-
-SELECT COUNT(*) AS ClubMembersCount
-FROM ClubMembers;
-
-SELECT COUNT(*) AS HobbiesCount
-FROM Hobbies;
-
-SELECT COUNT(*) AS TeamCount
-FROM Teams;
-
-SELECT COUNT(*) AS FIFAGamesCount
-FROM FIFA_Games;
-
-SELECT COUNT(*) AS MinorsCount
-FROM Minors;
-
-SELECT COUNT(*) AS MajorsCount
-FROM Majors;
-
-SELECT COUNT(*) AS PaymentsCount
-FROM Payments;
-
-SELECT COUNT(*) AS WorksAtCount
-FROM WorksAt;
-
-SELECT COUNT(*) AS ManagesCount
-FROM Manages;
-
-SELECT COUNT(*) AS RegistersAtCount
-FROM RegistersAt;
-
-SELECT COUNT(*) AS MemberAtCount
-FROM MemberAt;
-
-SELECT COUNT(*) AS FamilyOfCount
-FROM FamilyOf;
-
-SELECT COUNT(*) AS HasHobbyCount
-FROM HasHobby;
-
-SELECT COUNT(*) AS BelongsToCount
-FROM BelongsTo;
-
-SELECT COUNT(*) AS PlaysInCount
-FROM PlaysIn;
-
-SELECT COUNT(*) AS ParticipatesInCount
-FROM ParticipatesIn;
+SELECT 'Locations' AS tableName, COUNT(*) AS Count FROM Locations
+UNION ALL
+SELECT 'LocationPhones', COUNT(*) FROM LocationPhones
+UNION ALL
+SELECT 'Personnel', COUNT(*) FROM Personnel
+UNION ALL
+SELECT 'FamilyMembers', COUNT(*) FROM FamilyMembers
+UNION ALL
+SELECT 'ClubMembers', COUNT(*) FROM ClubMembers
+UNION ALL
+SELECT 'Hobbies', COUNT(*) FROM Hobbies
+UNION ALL
+SELECT 'Teams', COUNT(*) FROM Teams
+UNION ALL
+SELECT 'FIFA_Games', COUNT(*) FROM FIFA_Games
+UNION ALL
+SELECT 'Minors', COUNT(*) FROM Minors
+UNION ALL
+SELECT 'Majors', COUNT(*) FROM Majors
+UNION ALL
+SELECT 'Payments', COUNT(*) FROM Payments
+UNION ALL
+SELECT 'WorksAt', COUNT(*) FROM WorksAt
+UNION ALL
+SELECT 'Manages', COUNT(*) FROM Manages
+UNION ALL
+SELECT 'RegistersAt', COUNT(*) FROM RegistersAt
+UNION ALL
+SELECT 'MemberAt', COUNT(*) FROM MemberAt
+UNION ALL
+SELECT 'FamilyOf', COUNT(*) FROM FamilyOf
+UNION ALL
+SELECT 'HasHobby', COUNT(*) FROM HasHobby
+UNION ALL
+SELECT 'BelongsTo', COUNT(*) FROM BelongsTo
+UNION ALL
+SELECT 'PlaysIn', COUNT(*) FROM PlaysIn
+UNION ALL
+SELECT 'ParticipatesIn', COUNT(*) FROM ParticipatesIn;
