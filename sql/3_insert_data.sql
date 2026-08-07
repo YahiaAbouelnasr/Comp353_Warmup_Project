@@ -1,6 +1,6 @@
 USE wfc353_1;
 
-INSERT INTO Locations--done
+INSERT INTO Locations
 (locationID, type, name, address, city, province, postalCode, capacity)
 VALUES
 (1, 'Head',   'Montreal Head Club', '1000 De Maisonneuve Blvd W', 'Montreal', 'Quebec', 'H3G 1M8', 500),
@@ -14,7 +14,7 @@ VALUES
 (9, 'Branch', 'Lasalle Club', '9000 Newman Blvd', 'Lasalle', 'Quebec', 'H8N 1X1', 190),
 (10,'Branch', 'Rosemont Club', '10000 Rosemont Blvd', 'Montreal', 'Quebec', 'H1T 2E6', 330);
 
-INSERT INTO LocationPhones (locationID, phone)--done
+INSERT INTO LocationPhones (locationID, phone)
 VALUES
 (1, '514-555-1111'),
 (1, '514-908-9080'),
@@ -28,7 +28,7 @@ VALUES
 (9, '514-900-6801'),
 (10,'514-900-1023');
 
-INSERT INTO Personnel--added title
+INSERT INTO Personnel
 (personnelID, firstName, lastName, dob, ssn, medicareNo, phone, email,
  address, city, province, postalCode, `role`, title, mandate)
 VALUES
@@ -48,7 +48,7 @@ VALUES
 (114, 'Jack', 'Joseph', '1984-08-17', '111111114', 'BHVUI91135', '514-389-0114', 'JackJoseph@gmail.com', '114 Cedar St', 'Montreal', 'Quebec', 'H1T 1C4', 'Other','Branch Manager',  'Salaried'),
 (115, 'Priya', 'Sharma', '1994-05-19', '111111115', 'MDCOA11501', '514-555-0115', 'priya.sharma@gmail.com', '115 Pine St', 'Montreal', 'Quebec', 'H3A 1A6','Coach', 'Branch Manager', 'Salaried');
 
-INSERT INTO FamilyMembers--done
+INSERT INTO FamilyMembers
 (familyID, firstName, lastName, dob, ssn, medicareNo, phone, email,
  address, city, province, postalCode)
 VALUES
@@ -63,7 +63,7 @@ VALUES
 (209, 'Steven', 'Moore', '1982-10-25', '222222209', 'QWLKD87621', '514-555-0209', 'steven.moore@gmail.ca', '209 Oak St', 'Lasalle',  'Quebec', 'H8N 2A9'),
 (210, 'Amina', 'Patel', '1987-03-03', '222222210', 'AEDJH81271', '514-555-0210', 'amina.patel@gmail.ca', '210 Oak St', 'Montreal', 'Quebec', 'H1T 2B1');
 
-INSERT INTO ClubMembers--emails
+INSERT INTO ClubMembers
 (memberNo, firstName, lastName, dob, height, weight, ssn, medicareNo,
  phone, email, address, city, province, postalCode)
 VALUES
@@ -90,12 +90,12 @@ VALUES
 (21, 'Alex', 'Nguyen','1997-04-16', 181.00, 80.00, '900000021', 'ASIFH12398', '514-555-0319', 'AlexNguyen@gmail.com', '319 Elm St', 'Lasalle', 'Quebec', 'H8N 3C1'),
 (22, 'Amina', 'Patel', '1987-03-03', 171.00, 68.00, '222222210', 'AEDJH81271', '514-555-0210', 'AminaPatel@gmail.com', '210 Oak St', 'Montreal', 'Quebec', 'H1T 2B1');
 
-INSERT INTO Hobbies (hobbyName)--done
+INSERT INTO Hobbies (hobbyName)
 VALUES
 ('Soccer'),('Swimming'),('Tennis'),('Golf'),('Volleyball'),
 ('Hockey'),('Ping Pong'),('Running'),('Cycling'),('Basketball');
 
-INSERT INTO Teams (teamID, teamName, gender)--done
+INSERT INTO Teams (teamID, teamName, gender)
 VALUES
 (401, 'Montreal Lions', 'Boys'),
 (402, 'Laval Falcons', 'Boys'),
@@ -128,7 +128,7 @@ VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11), (12);
 INSERT INTO Majors (memberNo)
 VALUES (13), (14), (15), (16), (17), (18), (19), (20), (21), (22);
 
-INSERT INTO Payments (paymentID, memberNo, paymentDate, amount, method, memYear)--paymentID
+INSERT INTO Payments (paymentID, memberNo, paymentDate, amount, method, memYear)
 VALUES
 (501, 1,'2025-01-05', 100.00, 'Credit', 2025),
 (502, 2,'2025-01-06', 100.00, 'Debit', 2025),
@@ -194,7 +194,7 @@ VALUES
 (8, '2025-05-25 08:00:00', 9, 21, 'Lasalle Warriors Sunday 01-Jun-2025 3:00 PM game session', 'Dear Alex, you are scheduled as Goalkeeper for the game on Jun 1 at Verdun Stadium');
 
 
-INSERT INTO WorksAt (personnelID, locationID, startDate, endDate)--done
+INSERT INTO WorksAt (personnelID, locationID, startDate, endDate)
 VALUES
 (101,1,'2020-01-01',NULL),
 (102,1,'2021-02-01',NULL),
@@ -212,11 +212,11 @@ VALUES
 (114,10,'2021-02-01',NULL),
 (115, 1, '2023-01-01', NULL);
 
-INSERT INTO Manages (personnelID, locationID)--done
+INSERT INTO Manages (personnelID, locationID)
 VALUES
 (101,1),(106,2),(107,3),(108,4),(109,5),(110,6),(111,7),(112,8),(113,9),(114,10);
 
-INSERT INTO RegistersAt (familyID, locationID, startDate, endDate)--done
+INSERT INTO RegistersAt (familyID, locationID, startDate, endDate)
 VALUES
 (201,1,'2024-01-01',NULL),
 (202,2,'2024-01-02',NULL),
@@ -229,7 +229,7 @@ VALUES
 (209,9,'2024-01-09',NULL),
 (210,10,'2024-01-10',NULL);
 
-INSERT INTO MemberAt (memberNo, locationID, startDate, endDate)--done
+INSERT INTO MemberAt (memberNo, locationID, startDate, endDate)
 VALUES
 (1,1,'2024-01-01',NULL),
 (2,2,'2024-01-02',NULL),
@@ -255,7 +255,7 @@ VALUES
 (22,10,'2023-01-10',NULL);
 
 INSERT INTO FamilyOf
-(memberNo, familyID, relationship, familyType, startDate, endDate)--familyType?
+(memberNo, familyID, relationship, familyType, startDate, endDate)
 VALUES
 (1,201,'Father','Primary', '2024-01-01',NULL),
 (2,202,'Mother','Primary', '2024-01-02',NULL),
@@ -275,7 +275,7 @@ VALUES
 (6, 205, 'Tutor',  'Secondary', '2024-06-05', NULL),
 (9, 208, 'Mother', 'Secondary', '2024-06-09', NULL);
 
-INSERT INTO HasHobby (memberNo, hobbyName)--done
+INSERT INTO HasHobby (memberNo, hobbyName)
 VALUES
 (1,'Soccer'),(1,'Swimming'),(1,'Tennis'),(1,'Golf'),
 (2,'Soccer'),(2,'Volleyball'),
@@ -300,7 +300,7 @@ VALUES
 (21,'Golf'), (21, 'Swimming'),
 (22,'Soccer'), (22,'Swimming');
 
-INSERT INTO BelongsTo (teamID, locationID)--done
+INSERT INTO BelongsTo (teamID, locationID)
 VALUES
 (401,1),(402,2),(403,3),(404,4),(405,5),
 (406,6),(407,7),(408,8),(409,9),(410,10);
@@ -327,103 +327,3 @@ VALUES
 (7, 405, 609, 'Central Midfielder'), (17, 405, 609, 'Goalkeeper'),
 (9, 407, 610, 'Goalkeeper'), (19, 407, 610, 'Striker'),
 (21, 409, 610, 'Goalkeeper');
-
-
-/*Missing relationships
-receives
-assigned to
-coaches
-makes
-forms
-has formation
-
-
-missing tables
-session
-team formation
-emailLog*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*INSERT INTO PlaysIn (teamID, gameID)
-
-
-
-
-
-
-
-
-
-
-VALUES
-(401,501),(402,501),(403,502),(404,502),(405,503),
-(406,503),(407,504),(408,504),(409,505),(410,505),
-(401,506),(403,506),(402,507),(404,507),(405,508),
-(407,508),(406,509),(408,509),(409,510),(401,510);
-
-INSERT INTO ParticipatesIn (memberNo, teamID, gameID)
-VALUES
-(1,402,501),(2,404,502),(3,406,503),(4,408,504),
-(5,410,505),(6,407,508),(7,406,509),(8,404,502),
-(9,410,505),(10,410,505),(11,401,501),(11,401,506),
-(12,402,507),(13,406,509),(14,401,510),(15,403,502),
-(16,403,506),(17,404,507),(18,405,508),(19,405,503),
-(20,407,504),(1,403,502),(1,404,507),(1,406,509),
-(18,401,510),(18,404,507),(18,403,502);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-INSERT INTO FIFA_Games (gameID, gameDate, venue, finalScore)
-VALUES
-(501, '2025-05-01', 'Montreal Stadium','2-1'),
-(502, '2025-05-08', 'Laval Stadium','1-1'),
-(503, '2025-05-15', 'Longueuil Stadium', '3-0'),
-(504, '2025-05-22', 'Brossard Stadium','0-2'),
-(505, '2025-06-01', 'Verdun Stadium','2-2'),
-(506, '2025-06-08', 'Saint-Laurent Park','1-0'),
-(507, '2025-06-15', 'West Island Park', '2-3'),
-(508, '2025-06-22', 'Anjou Stadium', '4-1'),
-(509, '2025-07-01', 'Lasalle Stadium', '0-0'),
-(510, '2025-07-08', 'Rosemont Stadium', '3-2');*/
