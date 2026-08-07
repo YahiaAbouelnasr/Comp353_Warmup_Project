@@ -1,6 +1,6 @@
 USE wfc353_1;
 
---since we might run the code several times for demo purposes etc
+-- since we might run the code several times for demo purposes etc
 DROP TABLE IF EXISTS AssignedTo;
 DROP TABLE IF EXISTS ParticipatesIn;
 DROP TABLE IF EXISTS PlaysIn;
@@ -175,7 +175,7 @@ CREATE TABLE TeamFormations (
 
 
 CREATE TABLE EmailLog (
-    emailID INT PRIMARY KEY,
+    emailID INT AUTO_INCREMENT PRIMARY KEY,
     emailDate DATETIME NOT NULL,
     sender INT NOT NULL,
     receiver INT NOT NULL,
@@ -187,6 +187,42 @@ CREATE TABLE EmailLog (
 
     FOREIGN KEY (receiver)
         REFERENCES ClubMembers(memberNo)
+);
+
+-- FIFA games: representative/tournament games a club member played in,
+-- distinct from the club's own scheduled Sessions/TeamFormations.
+CREATE TABLE FIFA_Games (
+    gameID INT PRIMARY KEY,
+    gameDate DATE NOT NULL,
+    venue VARCHAR(150) NOT NULL,
+    finalScore VARCHAR(20)
+);
+
+CREATE TABLE PlaysIn (
+    teamID INT,
+    gameID INT,
+
+    PRIMARY KEY (teamID, gameID),
+
+    FOREIGN KEY (teamID)
+        REFERENCES Teams(teamID),
+
+    FOREIGN KEY (gameID)
+        REFERENCES FIFA_Games(gameID)
+);
+
+CREATE TABLE ParticipatesIn (
+    memberNo INT,
+    teamID INT,
+    gameID INT,
+
+    PRIMARY KEY (memberNo, teamID, gameID),
+
+    FOREIGN KEY (memberNo)
+        REFERENCES ClubMembers(memberNo),
+
+    FOREIGN KEY (teamID, gameID)
+        REFERENCES PlaysIn(teamID, gameID)
 );
 
 -- Relationship tables
