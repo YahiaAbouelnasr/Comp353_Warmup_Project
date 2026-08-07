@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Personnel</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Personnel</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2 id="formTitle">Add Personnel</h2>
+  <form id="personnelForm">
+    <input type="hidden" id="personnelID">
+
+    <label>First Name</label>
+    <input type="text" id="firstName" required><br>
+
+    <label>Last Name</label>
+    <input type="text" id="lastName" required><br>
+
+    <label>Date of Birth</label>
+    <input type="date" id="dob" required><br>
+
+    <label>SSN</label>
+    <input type="text" id="ssn" required><br>
+
+    <label>Role</label>
+    <select id="role" required>
+      <option>Administrator</option>
+      <option>Captain</option>
+      <option>Coach</option>
+      <option>Assistant Coach</option>
+      <option>Other</option>
+    </select><br>
+
+    <label>Title</label>
+    <input type="text" id="title"><br>
+
+    <label>Mandate</label>
+    <select id="mandate" required>
+      <option>Salaried</option>
+      <option>Volunteer</option>
+    </select><br>
+
+    <button type="submit" id="submitBtn">Add Personnel</button>
+    <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+  </form>
+
+  <h2>All Personnel</h2>
+  <table border="1" id="personnelTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Title</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="personnelBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const form = document.getElementById("personnelForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formTitle = document.getElementById("formTitle");
+
+    async function loadPersonnel() {
+      const personnel = await getPersonnel();
+      const body = document.getElementById("personnelBody");
+      body.innerHTML = "";
+
+      personnel.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${p.personnelID}</td>
+          <td>${p.firstName} ${p.lastName}</td>
+          <td>${p.role}</td>
+          <td>${p.title ? p.title : ""}</td>
+          <td>
+            <button onclick="editPersonnel(${p.personnelID}, '${p.firstName}', '${p.lastName}', '${p.role}', '${p.title ? p.title : ""}')">Edit</button>
+            <button onclick="removePersonnel(${p.personnelID})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    function editPersonnel(id, firstName, lastName, role, title) {
+      document.getElementById("personnelID").value = id;
+      document.getElementById("firstName").value = firstName;
+      document.getElementById("lastName").value = lastName;
+      document.getElementById("role").value = role;
+      document.getElementById("title").value = title;
+
+      formTitle.textContent = "Edit Personnel";
+      submitBtn.textContent = "Save Changes";
+      cancelBtn.style.display = "inline";
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById("personnelID").value = "";
+      formTitle.textContent = "Add Personnel";
+      submitBtn.textContent = "Add Personnel";
+      cancelBtn.style.display = "none";
+    }
+
+    cancelBtn.addEventListener("click", resetForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("personnelID").value;
+      const data = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        dob: document.getElementById("dob").value,
+        ssn: document.getElementById("ssn").value,
+        role: document.getElementById("role").value,
+        title: document.getElementById("title").value,
+        mandate: document.getElementById("mandate").value
+      };
+
+      if (id) {
+        await updatePersonnel(id, data);
+      } else {
+        await createPersonnel(data);
+      }
+
+      resetForm();
+      loadPersonnel();
+    });
+
+    async function removePersonnel(id) {
+      if (confirm("Delete this personnel record?")) {
+        await deletePersonnel(id);
+        loadPersonnel();
+      }
+    }
+
+    loadPersonnel();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reports</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Reports</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2>Choose a Report</h2>
+  <select id="reportSelect">
+    <option value="query8">Query 8 - Locations with 2+ members in a FIFA game</option>
+    <option value="query9">Query 9 - Primary family members with 2+ members in a FIFA game</option>
+    <option value="query10">Query 10 - Team formations for a location & date range</option>
+    <option value="query11">Query 11 - Members with 5+ FIFA game appearances</option>
+    <option value="query12">Query 12 - Session totals per location for a date range</option>
+    <option value="query13">Query 13 - Active members never assigned but played a FIFA game</option>
+    <option value="query14">Query 14 - Major members who joined as minors</option>
+    <option value="query15">Query 15 - Members who have only ever played Goalkeeper</option>
+    <option value="query16">Query 16 - Members assigned to 5 specific roles at least once</option>
+    <option value="query17">Query 17 - Family members who are also head coaches</option>
+    <option value="query18">Query 18 - Active members who have never won a game</option>
+    <option value="query19">Query 19 - Volunteer personnel who are also family members</option>
+  </select>
+  <button id="runBtn">Run Report</button>
+
+  <h2 id="reportTitle">Results</h2>
+  <table border="1" id="reportTable">
+    <thead id="reportHead"></thead>
+    <tbody id="reportBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    async function runReport() {
+      const reportId = document.getElementById("reportSelect").value;
+      const selectedText = document.getElementById("reportSelect").selectedOptions[0].textContent;
+      document.getElementById("reportTitle").textContent = selectedText;
+
+      const result = await getReport(reportId);
+      const columns = result.columns;
+      const rows = result.rows;
+
+      const head = document.getElementById("reportHead");
+      head.innerHTML = "<tr>" + columns.map(c => `<th>${c}</th>`).join("") + "</tr>";
+
+      const body = document.getElementById("reportBody");
+      body.innerHTML = "";
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = row.map(cell => `<td>${cell}</td>`).join("");
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById("runBtn").addEventListener("click", runReport);
+
+    runReport();
+  </script>
+
+</body>
+</html>

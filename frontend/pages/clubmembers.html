@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Club Members</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Club Members</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2 id="formTitle">Add a Club Member</h2>
+  <form id="memberForm">
+    <input type="hidden" id="memberNo">
+
+    <label>First Name</label>
+    <input type="text" id="firstName" required><br>
+
+    <label>Last Name</label>
+    <input type="text" id="lastName" required><br>
+
+    <label>Date of Birth</label>
+    <input type="date" id="dob" required><br>
+
+    <label>Height (cm)</label>
+    <input type="number" step="0.01" id="height"><br>
+
+    <label>Weight (kg)</label>
+    <input type="number" step="0.01" id="weight"><br>
+
+    <label>SSN</label>
+    <input type="text" id="ssn"><br>
+
+    <label>Medicare Number</label>
+    <input type="text" id="medicareNo"><br>
+
+    <label>Phone</label>
+    <input type="text" id="phone"><br>
+
+    <label>Email</label>
+    <input type="email" id="email"><br>
+
+    <label>Address</label>
+    <input type="text" id="address"><br>
+
+    <label>City</label>
+    <input type="text" id="city"><br>
+
+    <label>Province</label>
+    <input type="text" id="province"><br>
+
+    <label>Postal Code</label>
+    <input type="text" id="postalCode" required><br>
+
+    <button type="submit" id="submitBtn">Add Member</button>
+    <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+  </form>
+
+  <h2>All Club Members</h2>
+  <table border="1" id="membersTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>DOB</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="membersBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const form = document.getElementById("memberForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formTitle = document.getElementById("formTitle");
+
+    async function loadMembers() {
+      const members = await getClubMembers();
+      const body = document.getElementById("membersBody");
+      body.innerHTML = "";
+
+      members.forEach(m => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${m.memberNo}</td>
+          <td>${m.firstName} ${m.lastName}</td>
+          <td>${m.dob}</td>
+          <td>${m.status ? m.status : ""}</td>
+          <td>
+            <button onclick="editMember(${m.memberNo}, '${m.firstName}', '${m.lastName}', '${m.dob}')">Edit</button>
+            <button onclick="removeMember(${m.memberNo})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    function editMember(id, firstName, lastName, dob) {
+      document.getElementById("memberNo").value = id;
+      document.getElementById("firstName").value = firstName;
+      document.getElementById("lastName").value = lastName;
+      document.getElementById("dob").value = dob;
+
+      formTitle.textContent = "Edit Club Member";
+      submitBtn.textContent = "Save Changes";
+      cancelBtn.style.display = "inline";
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById("memberNo").value = "";
+      formTitle.textContent = "Add a Club Member";
+      submitBtn.textContent = "Add Member";
+      cancelBtn.style.display = "none";
+    }
+
+    cancelBtn.addEventListener("click", resetForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("memberNo").value;
+      const data = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        dob: document.getElementById("dob").value,
+        height: document.getElementById("height").value,
+        weight: document.getElementById("weight").value,
+        ssn: document.getElementById("ssn").value,
+        medicareNo: document.getElementById("medicareNo").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        address: document.getElementById("address").value,
+        city: document.getElementById("city").value,
+        province: document.getElementById("province").value,
+        postalCode: document.getElementById("postalCode").value
+      };
+
+      if (id) {
+        await updateClubMember(id, data);
+      } else {
+        await createClubMember(data);
+      }
+
+      resetForm();
+      loadMembers();
+    });
+
+    async function removeMember(id) {
+      if (confirm("Delete this club member?")) {
+        await deleteClubMember(id);
+        loadMembers();
+      }
+    }
+
+    loadMembers();
+  </script>
+
+</body>
+</html>

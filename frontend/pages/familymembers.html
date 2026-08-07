@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Family Members</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Family Members</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2 id="formTitle">Add a Family Member</h2>
+  <form id="familyForm">
+    <input type="hidden" id="familyID">
+
+    <label>First Name</label>
+    <input type="text" id="firstName" required><br>
+
+    <label>Last Name</label>
+    <input type="text" id="lastName" required><br>
+
+    <label>Date of Birth</label>
+    <input type="date" id="dob" required><br>
+
+    <label>SSN</label>
+    <input type="text" id="ssn"><br>
+
+    <label>Medicare Number</label>
+    <input type="text" id="medicareNo"><br>
+
+    <label>Phone</label>
+    <input type="text" id="phone" required><br>
+
+    <label>Email</label>
+    <input type="email" id="email"><br>
+
+    <label>Address</label>
+    <input type="text" id="address"><br>
+
+    <label>City</label>
+    <input type="text" id="city"><br>
+
+    <label>Province</label>
+    <input type="text" id="province"><br>
+
+    <label>Postal Code</label>
+    <input type="text" id="postalCode" required><br>
+
+    <button type="submit" id="submitBtn">Add Family Member</button>
+    <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+  </form>
+
+  <h2>All Family Members</h2>
+  <table border="1" id="familyTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>City</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="familyBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const form = document.getElementById("familyForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formTitle = document.getElementById("formTitle");
+
+    async function loadFamilyMembers() {
+      const familyMembers = await getFamilyMembers();
+      const body = document.getElementById("familyBody");
+      body.innerHTML = "";
+
+      familyMembers.forEach(f => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${f.familyID}</td>
+          <td>${f.firstName} ${f.lastName}</td>
+          <td>${f.city}</td>
+          <td>
+            <button onclick="editFamilyMember(${f.familyID}, '${f.firstName}', '${f.lastName}', '${f.city}')">Edit</button>
+            <button onclick="removeFamilyMember(${f.familyID})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    function editFamilyMember(id, firstName, lastName, city) {
+      document.getElementById("familyID").value = id;
+      document.getElementById("firstName").value = firstName;
+      document.getElementById("lastName").value = lastName;
+      document.getElementById("city").value = city;
+
+      formTitle.textContent = "Edit Family Member";
+      submitBtn.textContent = "Save Changes";
+      cancelBtn.style.display = "inline";
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById("familyID").value = "";
+      formTitle.textContent = "Add a Family Member";
+      submitBtn.textContent = "Add Family Member";
+      cancelBtn.style.display = "none";
+    }
+
+    cancelBtn.addEventListener("click", resetForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("familyID").value;
+      const data = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        dob: document.getElementById("dob").value,
+        ssn: document.getElementById("ssn").value,
+        medicareNo: document.getElementById("medicareNo").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        address: document.getElementById("address").value,
+        city: document.getElementById("city").value,
+        province: document.getElementById("province").value,
+        postalCode: document.getElementById("postalCode").value
+      };
+
+      if (id) {
+        await updateFamilyMember(id, data);
+      } else {
+        await createFamilyMember(data);
+      }
+
+      resetForm();
+      loadFamilyMembers();
+    });
+
+    async function removeFamilyMember(id) {
+      if (confirm("Delete this family member?")) {
+        await deleteFamilyMember(id);
+        loadFamilyMembers();
+      }
+    }
+
+    loadFamilyMembers();
+  </script>
+
+</body>
+</html>

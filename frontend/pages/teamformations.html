@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team Formations</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Team Formations</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2 id="formTitle">Add a Team Formation</h2>
+  <form id="formationForm">
+    <label>Team ID</label>
+    <input type="number" id="teamID" required><br>
+
+    <label>Session ID</label>
+    <input type="number" id="sessionID" required><br>
+
+    <label>Coach (Personnel ID)</label>
+    <input type="number" id="personnelID" required><br>
+
+    <label>Score (leave blank for training)</label>
+    <input type="number" id="score"><br>
+
+    <button type="submit">Add Formation</button>
+  </form>
+
+  <h2>All Formations</h2>
+  <table border="1" id="formationsTable">
+    <thead>
+      <tr>
+        <th>Team</th>
+        <th>Session</th>
+        <th>Coach</th>
+        <th>Score</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="formationsBody"></tbody>
+  </table>
+
+  <h2>Assign a Club Member to a Formation</h2>
+  <p>If the member already has a conflicting assignment within 3 hours on the same day, this will be rejected.</p>
+  <form id="assignForm">
+    <label>Club Member #</label>
+    <input type="number" id="assignMemberNo" required><br>
+
+    <label>Team ID</label>
+    <input type="number" id="assignTeamID" required><br>
+
+    <label>Session ID</label>
+    <input type="number" id="assignSessionID" required><br>
+
+    <label>Role</label>
+    <select id="assignRole" required>
+      <option>Goalkeeper</option>
+      <option>Right Fullback</option>
+      <option>Left Fullback</option>
+      <option>Center Back</option>
+      <option>Sweeper</option>
+      <option>Defending Midfielder</option>
+      <option>Right Winger</option>
+      <option>Central Midfielder</option>
+      <option>Striker</option>
+      <option>Attacking Midfielder</option>
+      <option>Left Winger</option>
+    </select><br>
+
+    <button type="submit">Assign Member</button>
+  </form>
+  <p id="assignMessage"></p>
+
+  <script src="../js/api.js"></script>
+  <script>
+    async function loadFormations() {
+      const formations = await getTeamFormations();
+      const body = document.getElementById("formationsBody");
+      body.innerHTML = "";
+
+      formations.forEach(f => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${f.teamID}</td>
+          <td>${f.sessionID}</td>
+          <td>${f.coachName}</td>
+          <td>${f.score !== null ? f.score : ""}</td>
+          <td>
+            <button onclick="removeFormation(${f.teamID}, ${f.sessionID})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    document.getElementById("formationForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        teamID: document.getElementById("teamID").value,
+        sessionID: document.getElementById("sessionID").value,
+        personnelID: document.getElementById("personnelID").value,
+        score: document.getElementById("score").value
+      };
+
+      await createTeamFormation(data);
+      e.target.reset();
+      loadFormations();
+    });
+
+    async function removeFormation(teamID, sessionID) {
+      if (confirm("Delete this formation?")) {
+        await deleteTeamFormation(teamID, sessionID);
+        loadFormations();
+      }
+    }
+
+    document.getElementById("assignForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        memberNo: document.getElementById("assignMemberNo").value,
+        teamID: document.getElementById("assignTeamID").value,
+        sessionID: document.getElementById("assignSessionID").value,
+        role: document.getElementById("assignRole").value
+      };
+
+      const messageEl = document.getElementById("assignMessage");
+
+      try {
+        await assignMember(data);
+        messageEl.textContent = "Member assigned successfully.";
+        e.target.reset();
+      } catch (err) {
+        messageEl.textContent = "Error: " + err.message;
+      }
+    });
+
+    loadFormations();
+  </script>
+
+</body>
+</html>
