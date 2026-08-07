@@ -1,5 +1,32 @@
 USE wfc353_1;
 
+--since we might run the code several times for demo purposes etc
+DROP TABLE IF EXISTS AssignedTo;
+DROP TABLE IF EXISTS ParticipatesIn;
+DROP TABLE IF EXISTS PlaysIn;
+DROP TABLE IF EXISTS TeamFormations;
+DROP TABLE IF EXISTS EmailLog;
+DROP TABLE IF EXISTS Payments;
+DROP TABLE IF EXISTS HasHobby;
+DROP TABLE IF EXISTS FamilyOf;
+DROP TABLE IF EXISTS MemberAt;
+DROP TABLE IF EXISTS RegistersAt;
+DROP TABLE IF EXISTS Manages;
+DROP TABLE IF EXISTS WorksAt;
+DROP TABLE IF EXISTS BelongsTo;
+DROP TABLE IF EXISTS Majors;
+DROP TABLE IF EXISTS Minors;
+DROP TABLE IF EXISTS LocationPhones;
+DROP TABLE IF EXISTS FIFA_Games;
+DROP TABLE IF EXISTS Sessions;
+DROP TABLE IF EXISTS Teams;
+DROP TABLE IF EXISTS Hobbies;
+DROP TABLE IF EXISTS ClubMembers;
+DROP TABLE IF EXISTS FamilyMembers;
+DROP TABLE IF EXISTS Personnel;
+DROP TABLE IF EXISTS Locations;
+
+
 -- Entity tables --
 
 CREATE TABLE Locations (
@@ -34,6 +61,7 @@ CREATE TABLE Personnel (
         'Assistant Coach',
         'Other'
     ) NOT NULL,
+    title VARCHAR(50),
     mandate ENUM('Volunteer', 'Salaried') NOT NULL
 );
 
@@ -62,6 +90,7 @@ CREATE TABLE ClubMembers (
     ssn CHAR(9) UNIQUE,
     medicareNo VARCHAR(20),
     phone VARCHAR(20),
+    email VARCHAR(100),
     address VARCHAR(150),
     city VARCHAR(60),
     province VARCHAR(60),
@@ -78,12 +107,16 @@ CREATE TABLE Teams (
     gender ENUM('Boys', 'Girls') NOT NULL
 );
 
-CREATE TABLE FIFA_Games ( 
-    gameID INT PRIMARY KEY,
-    gameDate DATE NOT NULL,
-    venue VARCHAR(150) NOT NULL,
-    finalScore VARCHAR(20) NOT NULL
+CREATE TABLE Sessions (
+    sessionID INT PRIMARY KEY, 
+    sessionDateTime DATETIME NOT NULL,
+    address VARCHAR(150) NOT NULL,
+    nature ENUM (
+        'Training',
+        'Game'
+    ) NOT NULL
 );
+
 
 CREATE TABLE LocationPhones (
     locationID INT,
@@ -110,15 +143,49 @@ CREATE TABLE Majors (
 );
 
 CREATE TABLE Payments (
-    memberNo INT,
+    memberNo INT NOT NULL,
+    paymentID INT PRIMARY KEY, 
     paymentDate DATE,
     amount DECIMAL(10,2) NOT NULL,
     method ENUM('Cash', 'Debit', 'Credit') NOT NULL,
     memYear YEAR NOT NULL,
 
-    PRIMARY KEY (memberNo, paymentDate),
-
     FOREIGN KEY (memberNo)
+        REFERENCES ClubMembers(memberNo)
+);
+
+CREATE TABLE TeamFormations (
+    personnelID INT NOT NULL,
+    teamID INT NOT NULL,
+    sessionID INT NOT NULL,
+    score INT,
+
+    PRIMARY KEY (teamID, sessionID),
+
+    FOREIGN KEY (personnelID)
+        REFERENCES Personnel(personnelID),
+
+    FOREIGN KEY (teamID)
+        REFERENCES Teams(teamID),
+
+    FOREIGN KEY (sessionID)
+        REFERENCES Sessions(sessionID)
+);
+
+
+
+CREATE TABLE EmailLog (
+    emailID INT PRIMARY KEY,
+    emailDate DATETIME NOT NULL,
+    sender INT NOT NULL,
+    receiver INT NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    bodyPreview VARCHAR(100),
+
+    FOREIGN KEY (sender)
+        REFERENCES Locations(locationID),
+
+    FOREIGN KEY (receiver)
         REFERENCES ClubMembers(memberNo)
 );
 
@@ -183,6 +250,10 @@ CREATE TABLE MemberAt (
 CREATE TABLE FamilyOf ( 
     memberNo INT,
     familyID INT,
+    familyType ENUM(
+        'Primary',
+        'Secondary'
+    ),
     relationship ENUM(
         'Father',
         'Mother',
@@ -229,29 +300,18 @@ CREATE TABLE BelongsTo (
         REFERENCES Locations(locationID)
 );
 
-CREATE TABLE PlaysIn (
-    teamID INT,
-    gameID INT,
+CREATE TABLE AssignedTo (
+    memberNo INT NOT NULL,
+    teamID INT NOT NULL,
+    sessionID INT NOT NULL,
+    `role` VARCHAR(30) NOT NULL,
 
-    PRIMARY KEY (teamID, gameID),
-
-    FOREIGN KEY (teamID)
-        REFERENCES Teams(teamID),
-
-    FOREIGN KEY (gameID)
-        REFERENCES FIFA_Games(gameID)
-);
-
-CREATE TABLE ParticipatesIn (
-    memberNo INT,
-    teamID INT,
-    gameID INT,
-
-    PRIMARY KEY (memberNo, teamID, gameID),
+    PRIMARY KEY (memberNo, teamID, sessionID),
 
     FOREIGN KEY (memberNo)
         REFERENCES ClubMembers(memberNo),
 
-    FOREIGN KEY (teamID, gameID)
-        REFERENCES PlaysIn(teamID, gameID)
+    FOREIGN KEY (teamID, sessionID)
+        REFERENCES TeamFormations(teamID, sessionID)
+
 );
