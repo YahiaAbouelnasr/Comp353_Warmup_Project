@@ -327,3 +327,158 @@ VALUES
 (7, 405, 609, 'Central Midfielder'), (17, 405, 609, 'Goalkeeper'),
 (9, 407, 610, 'Goalkeeper'), (19, 407, 610, 'Striker'),
 (21, 409, 610, 'Goalkeeper');
+
+-- FIFA games (separate from club Sessions), spread 2023-2026
+INSERT INTO FIFA_Games (gameID, gameDate, venue, finalScore) VALUES
+(701, '2023-06-10', 'National Stadium', '3-1'),
+(702, '2023-09-15', 'Regional Arena', '2-2'),
+(703, '2024-02-20', 'City Sports Complex', '1-0'),
+(704, '2024-07-05', 'Metro Stadium', '4-2'),
+(705, '2024-11-12', 'Coastal Field', '0-0'),
+(706, '2025-01-18', 'National Stadium', '2-1'),
+(707, '2025-04-22', 'Regional Arena', '3-3'),
+(708, '2025-08-30', 'City Sports Complex', '1-1'),
+(709, '2026-03-14', 'Metro Stadium', '2-0'),
+(710, '2026-06-01', 'Coastal Field', '3-2'),
+(711, '2023-12-01', 'National Stadium', '1-1'),
+(712, '2024-05-09', 'Regional Arena', '2-1'),
+(713, '2024-09-01', 'City Sports Complex', '2-2'),
+(714, '2025-02-14', 'Metro Stadium', '1-3'),
+(715, '2025-10-10', 'Coastal Field', '0-2');
+
+INSERT INTO PlaysIn (teamID, gameID) VALUES
+(401, 706), (403, 706),
+(402, 707), (404, 707),
+(403, 703), (408, 703),
+(404, 704), (409, 704),
+(405, 705), (410, 705),
+(401, 710), (409, 710),
+(401, 711), (405, 711),
+(401, 712), (407, 712),
+(402, 713), (406, 713),
+(402, 714), (409, 714),
+(402, 715), (410, 715),
+(401, 701), (406, 701),
+(402, 702), (407, 702);
+
+-- members 1,3,13 (team 401) and 2,4,14 (team 402) each get 5 FIFA games -> item 11
+-- members 5,15 and 6,16 each get 1 FIFA game -> item 8 (2+ FIFA players per location)
+INSERT INTO ParticipatesIn (memberNo, teamID, gameID) VALUES
+(1, 401, 701), (1, 401, 706), (1, 401, 710), (1, 401, 711), (1, 401, 712),
+(3, 401, 701), (3, 401, 706), (3, 401, 710), (3, 401, 711), (3, 401, 712),
+(13, 401, 701), (13, 401, 706), (13, 401, 710), (13, 401, 711), (13, 401, 712),
+(2, 402, 702), (2, 402, 707), (2, 402, 713), (2, 402, 714), (2, 402, 715),
+(4, 402, 702), (4, 402, 707), (4, 402, 713), (4, 402, 714), (4, 402, 715),
+(14, 402, 702), (14, 402, 707), (14, 402, 713), (14, 402, 714), (14, 402, 715),
+(5, 403, 703), (15, 403, 703),
+(6, 404, 704), (16, 404, 704);
+
+-- two members active on payments but never assigned to a session -> item 13
+INSERT INTO ClubMembers
+(firstName, lastName, dob, height, weight, ssn, medicareNo, phone, email, address, city, province, postalCode)
+VALUES
+('Layla', 'Fares', '1993-08-01', 165.00, 60.00, '900000026', 'LFAR990112', '514-555-0401', 'LaylaFares@gmail.com', '401 Birch St', 'Montreal', 'Quebec', 'H3E 1A1'),
+('Samir', 'Attia', '1991-02-17', 180.00, 78.00, '900000027', 'SATT881203', '514-555-0402', 'SamirAttia@gmail.com', '402 Birch St', 'Laval', 'Quebec', 'H7E 1A2');
+-- memberNo 23 and 24 (auto-increment)
+
+INSERT INTO Majors (memberNo) VALUES (23), (24);
+
+INSERT INTO MemberAt (memberNo, locationID, startDate, endDate) VALUES
+(23, 1, '2024-01-01', NULL),
+(24, 2, '2024-01-01', NULL);
+
+INSERT INTO Payments (paymentID, memberNo, paymentDate, amount, method, memYear) VALUES
+(534, 23, '2025-01-05', 200.00, 'Credit', 2025),
+(535, 24, '2025-01-06', 200.00, 'Debit', 2025);
+
+INSERT INTO ParticipatesIn (memberNo, teamID, gameID) VALUES
+(23, 401, 706),
+(24, 403, 706);
+
+-- extra club Sessions/TeamFormations so locations 1,2,3 reach 4+ game sessions
+-- in 2025 (item 12), and cover the 5 roles from item 16
+INSERT INTO Sessions (sessionID, sessionDateTime, address, nature) VALUES
+(631, '2025-03-10 15:00:00', 'Montreal Stadium', 'Game'),
+(632, '2025-07-20 15:00:00', 'Longueuil Stadium', 'Game'),
+(633, '2025-02-01 10:00:00', 'Montreal Practice Field', 'Training'),
+(634, '2025-08-01 10:00:00', 'Longueuil Practice Field', 'Training'),
+(635, '2025-01-15 15:00:00', 'Brossard Stadium', 'Game'),
+(636, '2025-04-01 15:00:00', 'Longueuil Stadium', 'Game'),
+(638, '2025-05-05 10:00:00', 'Montreal Practice Field', 'Training'),
+(639, '2025-06-06 10:00:00', 'Montreal Practice Field', 'Training');
+
+-- two volunteer coaches who are also family members (same ssn) -> items 17, 19
+-- (must exist before the TeamFormations insert below, which makes them head coaches)
+INSERT INTO Personnel
+(personnelID, firstName, lastName, dob, ssn, medicareNo, phone, email, address, city, province, postalCode, `role`, title, mandate)
+VALUES
+(117, 'Karim', 'Haddad', '1985-03-15', '333333301', 'KHAD850315', '514-555-0117', 'karim.haddad@gmail.com', '117 Cedar St', 'Montreal', 'Quebec', 'H1K 1C5', 'Coach', 'Volunteer Coach', 'Volunteer'),
+(118, 'Sara', 'Iqbal', '1987-07-22', '333333302', 'SIQB870722', '514-555-0118', 'sara.iqbal@gmail.com', '118 Cedar St', 'Montreal', 'Quebec', 'H1K 1C6', 'Coach', 'Volunteer Coach', 'Volunteer');
+
+INSERT INTO WorksAt (personnelID, locationID, startDate, endDate) VALUES
+(117, 1, '2023-01-01', NULL),
+(118, 1, '2023-01-01', NULL);
+
+INSERT INTO TeamFormations (personnelID, teamID, sessionID, score) VALUES
+(115, 401, 631, 2), (106, 402, 631, 1),
+(115, 401, 632, 1), (107, 403, 632, 1),
+(115, 401, 633, NULL), (106, 402, 633, NULL),
+(107, 403, 634, NULL), (115, 401, 634, NULL),
+(106, 402, 635, 0), (108, 404, 635, 2),
+(107, 403, 636, 3), (106, 402, 636, 0),
+(117, 401, 638, NULL), (106, 402, 638, NULL),
+(118, 401, 639, NULL), (107, 403, 639, NULL);
+
+INSERT INTO AssignedTo (memberNo, teamID, sessionID, `role`) VALUES
+(1, 401, 631, 'Striker'), (2, 402, 631, 'Goalkeeper'),
+(3, 401, 632, 'Right Fullback'), (5, 403, 632, 'Goalkeeper'),
+(1, 401, 633, 'Goalkeeper'), (2, 402, 633, 'Striker'),
+(5, 403, 634, 'Goalkeeper'), (3, 401, 634, 'Striker'),
+(4, 402, 635, 'Striker'), (6, 404, 635, 'Goalkeeper'),
+(15, 403, 636, 'Striker'), (14, 402, 636, 'Goalkeeper'),
+-- members 10 and 19 get the other 4 of the 5 item-16 roles here
+-- member 10's session-604 row is 'Goalkeeper' (already have that one), needs Striker too
+-- member 19's session-604 row is 'Striker' (already have that one), 4 more below cover the rest
+(10, 402, 631, 'Striker'), (10, 403, 632, 'Sweeper'),
+(10, 404, 635, 'Right Fullback'), (10, 403, 636, 'Defending'),
+(19, 402, 631, 'Goalkeeper'), (19, 403, 632, 'Right Fullback'),
+(19, 404, 635, 'Sweeper'), (19, 403, 636, 'Defending');
+
+-- family-member side of personnel 117/118 (same ssn) -> items 17, 19
+INSERT INTO FamilyMembers
+(familyID, firstName, lastName, dob, ssn, medicareNo, phone, email, address, city, province, postalCode)
+VALUES
+(214, 'Karim', 'Haddad', '1985-03-15', '333333301', 'KHAD850315', '514-555-0117', 'karim.haddad@gmail.com', '117 Cedar St', 'Montreal', 'Quebec', 'H1K 1C5'),
+(215, 'Sara', 'Iqbal', '1987-07-22', '333333302', 'SIQB870722', '514-555-0118', 'sara.iqbal@gmail.com', '118 Cedar St', 'Montreal', 'Quebec', 'H1K 1C6');
+
+INSERT INTO RegistersAt (familyID, locationID, startDate, endDate) VALUES
+(214, 1, '2023-01-01', NULL),
+(215, 1, '2023-01-01', NULL);
+
+INSERT INTO FamilyOf (memberNo, familyID, relationship, familyType, startDate, endDate) VALUES
+(1, 214, 'Tutor', 'Secondary', '2023-01-01', NULL),
+(3, 215, 'Tutor', 'Secondary', '2023-01-01', NULL);
+-- 117/118 already set as head coaches of sessions 638/639 in the TeamFormations insert above
+
+-- two members registered as minors years ago, now 18+ -> item 14
+-- (nobody currently in Minors is 18+ yet without this)
+INSERT INTO ClubMembers
+(firstName, lastName, dob, height, weight, ssn, medicareNo, phone, email, address, city, province, postalCode)
+VALUES
+('Ali', 'Haddad', '2007-01-10', 179.00, 74.00, '900000028', 'AHAD070110', '514-555-0403', 'AliHaddad@gmail.com', '403 Birch St', 'Montreal', 'Quebec', 'H3E 1A3'),
+('Mona', 'Karim', '2006-05-20', 166.00, 61.00, '900000029', 'MKAR060520', '514-555-0404', 'MonaKarim@gmail.com', '404 Birch St', 'Verdun', 'Quebec', 'H4G 1A4');
+-- memberNo 25 and 26
+
+INSERT INTO Minors (memberNo) VALUES (25), (26);
+
+INSERT INTO FamilyOf (memberNo, familyID, relationship, familyType, startDate, endDate) VALUES
+(25, 201, 'Father', 'Primary', '2015-01-01', NULL),
+(26, 205, 'Grandfather', 'Primary', '2014-01-01', NULL);
+
+INSERT INTO MemberAt (memberNo, locationID, startDate, endDate) VALUES
+(25, 1, '2015-01-01', NULL),
+(26, 5, '2014-01-01', NULL);
+
+INSERT INTO Payments (paymentID, memberNo, paymentDate, amount, method, memYear) VALUES
+(536, 25, '2025-01-10', 200.00, 'Credit', 2025),  -- fully paid -> Active
+(537, 26, '2025-01-20', 150.00, 'Debit', 2025);   -- underpaid -> Inactive
