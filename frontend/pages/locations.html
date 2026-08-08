@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Locations</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
 
+  <h1>Locations</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2 id="formTitle">Add a Location</h2>
+  <form id="locationForm">
+    <input type="hidden" id="locationID">
+
+    <label>Type</label>
+    <select id="type" required>
+      <option value="Head">Head</option>
+      <option value="Branch">Branch</option>
+    </select><br>
+
+    <label>Name</label>
+    <input type="text" id="name" required><br>
+
+    <label>Address</label>
+    <input type="text" id="address" required><br>
+
+    <label>City</label>
+    <input type="text" id="city" required><br>
+
+    <label>Province</label>
+    <input type="text" id="province" required><br>
+
+    <label>Postal Code</label>
+    <input type="text" id="postalCode" required><br>
+
+    <label>Capacity</label>
+    <input type="number" id="capacity" required><br>
+
+    <button type="submit" id="submitBtn">Add Location</button>
+    <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+  </form>
+
+  <h2>All Locations</h2>
+  <table border="1" id="locationsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Name</th>
+        <th>City</th>
+        <th>Capacity</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="locationsBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const form = document.getElementById("locationForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formTitle = document.getElementById("formTitle");
+
+    async function loadLocations() {
+      const locations = await getLocations();
+      const body = document.getElementById("locationsBody");
+      body.innerHTML = "";
+
+      locations.forEach(loc => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${loc.locationID}</td>
+          <td>${loc.type}</td>
+          <td>${loc.name}</td>
+          <td>${loc.city}</td>
+          <td>${loc.capacity}</td>
+          <td>
+            <button onclick="editLocation(${loc.locationID}, '${loc.type}', '${loc.name}', '${loc.city}', ${loc.capacity})">Edit</button>
+            <button onclick="removeLocation(${loc.locationID})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    function editLocation(id, type, name, city, capacity) {
+      document.getElementById("locationID").value = id;
+      document.getElementById("type").value = type;
+      document.getElementById("name").value = name;
+      document.getElementById("city").value = city;
+      document.getElementById("capacity").value = capacity;
+
+      formTitle.textContent = "Edit Location";
+      submitBtn.textContent = "Save Changes";
+      cancelBtn.style.display = "inline";
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById("locationID").value = "";
+      formTitle.textContent = "Add a Location";
+      submitBtn.textContent = "Add Location";
+      cancelBtn.style.display = "none";
+    }
+
+    cancelBtn.addEventListener("click", resetForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("locationID").value;
+      const data = {
+        type: document.getElementById("type").value,
+        name: document.getElementById("name").value,
+        address: document.getElementById("address").value,
+        city: document.getElementById("city").value,
+        province: document.getElementById("province").value,
+        postalCode: document.getElementById("postalCode").value,
+        capacity: document.getElementById("capacity").value
+      };
+
+      if (id) {
+        await updateLocation(id, data);
+      } else {
+        await createLocation(data);
+      }
+
+      resetForm();
+      loadLocations();
+    });
+
+    async function removeLocation(id) {
+      if (confirm("Delete this location?")) {
+        await deleteLocation(id);
+        loadLocations();
+      }
+    }
+
+    loadLocations();
+  </script>
+
+</body>
+</html>

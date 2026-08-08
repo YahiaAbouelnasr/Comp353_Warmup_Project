@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Club Members</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Club Members</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2 id="formTitle">Add a Club Member</h2>
+  <form id="memberForm">
+    <input type="hidden" id="memberNo">
+
+    <label>First Name</label>
+    <input type="text" id="firstName" required><br>
+
+    <label>Last Name</label>
+    <input type="text" id="lastName" required><br>
+
+    <label>Date of Birth</label>
+    <input type="date" id="dob" required><br>
+
+    <label>Height (cm)</label>
+    <input type="number" step="0.01" id="height"><br>
+
+    <label>Weight (kg)</label>
+    <input type="number" step="0.01" id="weight"><br>
+
+    <label>SSN</label>
+    <input type="text" id="ssn"><br>
+
+    <label>Medicare Number</label>
+    <input type="text" id="medicareNo"><br>
+
+    <label>Phone</label>
+    <input type="text" id="phone"><br>
+
+    <label>Email</label>
+    <input type="email" id="email"><br>
+
+    <label>Address</label>
+    <input type="text" id="address"><br>
+
+    <label>City</label>
+    <input type="text" id="city"><br>
+
+    <label>Province</label>
+    <input type="text" id="province"><br>
+
+    <label>Postal Code</label>
+    <input type="text" id="postalCode" required><br>
+
+    <label>Location</label>
+    <select id="locationID" required></select><br>
+
+    <div id="minorFields" style="display:none;">
+      <label>Guardian (Family Member)</label>
+      <select id="familyID"></select><br>
+
+      <label>Relationship to Guardian</label>
+      <select id="relationship">
+        <option>Father</option>
+        <option>Mother</option>
+        <option>Grandfather</option>
+        <option>Grandmother</option>
+        <option>Tutor</option>
+        <option>Partner</option>
+        <option>Friend</option>
+        <option>Other</option>
+      </select><br>
+    </div>
+
+    <button type="submit" id="submitBtn">Add Member</button>
+    <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+  </form>
+  <p id="formMessage"></p>
+
+  <h2>All Club Members</h2>
+  <table border="1" id="membersTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>DOB</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Location</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="membersBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const form = document.getElementById("memberForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formTitle = document.getElementById("formTitle");
+    const formMessage = document.getElementById("formMessage");
+    const locationSelect = document.getElementById("locationID");
+    const dobInput = document.getElementById("dob");
+    const minorFields = document.getElementById("minorFields");
+    const familySelect = document.getElementById("familyID");
+
+    let membersCache = [];
+
+    function ageFromDob(dob) {
+      const d = new Date(dob);
+      const ref = new Date();
+      let age = ref.getFullYear() - d.getFullYear();
+      const m = ref.getMonth() - d.getMonth();
+      if (m < 0 || (m === 0 && ref.getDate() < d.getDate())) age--;
+      return age;
+    }
+
+    dobInput.addEventListener("change", () => {
+      if (!dobInput.value) {
+        minorFields.style.display = "none";
+        return;
+      }
+      minorFields.style.display = ageFromDob(dobInput.value) < 18 ? "block" : "none";
+    });
+
+    async function loadLocationOptions() {
+      const locations = await getLocations();
+      locationSelect.innerHTML = locations
+        .map(l => `<option value="${l.locationID}">${l.name}</option>`)
+        .join("");
+    }
+
+    async function loadFamilyOptions() {
+      const families = await getFamilyMembers();
+      familySelect.innerHTML = families
+        .map(f => `<option value="${f.familyID}">${f.firstName} ${f.lastName} (#${f.familyID})</option>`)
+        .join("");
+    }
+
+    async function loadMembers() {
+      membersCache = await getClubMembers();
+      const body = document.getElementById("membersBody");
+      body.innerHTML = "";
+
+      membersCache.forEach(m => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${m.memberNo}</td>
+          <td>${m.firstName} ${m.lastName}</td>
+          <td>${m.dob}</td>
+          <td>${m.memberType || ""}</td>
+          <td>${m.status || ""}</td>
+          <td>${m.currentLocation || ""}</td>
+          <td>
+            <button onclick="editMember(${m.memberNo})">Edit</button>
+            <button onclick="removeMember(${m.memberNo})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    function editMember(id) {
+      const m = membersCache.find(x => x.memberNo === id);
+      if (!m) return;
+
+      document.getElementById("memberNo").value = m.memberNo;
+      document.getElementById("firstName").value = m.firstName;
+      document.getElementById("lastName").value = m.lastName;
+      document.getElementById("dob").value = m.dob;
+      document.getElementById("height").value = m.height || "";
+      document.getElementById("weight").value = m.weight || "";
+      document.getElementById("ssn").value = m.ssn || "";
+      document.getElementById("medicareNo").value = m.medicareNo || "";
+      document.getElementById("phone").value = m.phone || "";
+      document.getElementById("email").value = m.email || "";
+      document.getElementById("address").value = m.address || "";
+      document.getElementById("city").value = m.city || "";
+      document.getElementById("province").value = m.province || "";
+      document.getElementById("postalCode").value = m.postalCode;
+      if (m.currentLocationID) locationSelect.value = m.currentLocationID;
+      minorFields.style.display = "none"; // editing never re-registers a minor's guardian
+
+      formTitle.textContent = "Edit Club Member";
+      submitBtn.textContent = "Save Changes";
+      cancelBtn.style.display = "inline";
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById("memberNo").value = "";
+      minorFields.style.display = "none";
+      formTitle.textContent = "Add a Club Member";
+      submitBtn.textContent = "Add Member";
+      cancelBtn.style.display = "none";
+      formMessage.textContent = "";
+    }
+
+    cancelBtn.addEventListener("click", resetForm);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("memberNo").value;
+      const data = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        dob: document.getElementById("dob").value,
+        height: document.getElementById("height").value,
+        weight: document.getElementById("weight").value,
+        ssn: document.getElementById("ssn").value,
+        medicareNo: document.getElementById("medicareNo").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        address: document.getElementById("address").value,
+        city: document.getElementById("city").value,
+        province: document.getElementById("province").value,
+        postalCode: document.getElementById("postalCode").value,
+        locationID: locationSelect.value,
+      };
+
+      if (!id && minorFields.style.display !== "none") {
+        data.familyID = familySelect.value;
+        data.relationship = document.getElementById("relationship").value;
+      }
+
+      try {
+        if (id) {
+          await updateClubMember(id, data);
+        } else {
+          await createClubMember(data);
+        }
+        resetForm();
+        loadMembers();
+      } catch (err) {
+        formMessage.textContent = "Error: " + err.message;
+      }
+    });
+
+    async function removeMember(id) {
+      if (confirm("Delete this club member?")) {
+        try {
+          await deleteClubMember(id);
+          loadMembers();
+        } catch (err) {
+          formMessage.textContent = "Error: " + err.message;
+        }
+      }
+    }
+
+    Promise.all([loadLocationOptions(), loadFamilyOptions()]).then(loadMembers);
+  </script>
+
+</body>
+</html>

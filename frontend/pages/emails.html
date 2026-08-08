@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emails</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Emails</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2>Generate Weekly Session Emails</h2>
+  <p>Generates a reminder email for every club member assigned to a session in the 7 days after the chosen Sunday.</p>
+  <form id="generateForm">
+    <label>Reference Sunday</label>
+    <input type="date" id="refSunday"><br>
+
+    <button type="submit">Generate Emails</button>
+  </form>
+  <p id="generateMessage"></p>
+
+  <h2>Email Log</h2>
+  <label>Search by Club Member #</label>
+  <input type="number" id="searchReceiver">
+  <button id="searchBtn">Search</button>
+  <button id="clearBtn" type="button">Clear</button>
+
+  <table border="1" id="emailsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Subject</th>
+        <th>Preview</th>
+      </tr>
+    </thead>
+    <tbody id="emailsBody"></tbody>
+  </table>
+
+  <script src="../js/api.js"></script>
+  <script>
+    async function loadEmails(receiver) {
+      const emails = await getEmailLog(receiver ? { receiver } : {});
+      const body = document.getElementById("emailsBody");
+      body.innerHTML = "";
+
+      emails.forEach(e => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${e.emailID}</td>
+          <td>${e.emailDate}</td>
+          <td>${e.senderLocation}</td>
+          <td>${e.receiverName}</td>
+          <td>${e.subject}</td>
+          <td>${e.bodyPreview || ""}</td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    document.getElementById("generateForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const refSunday = document.getElementById("refSunday").value;
+      const messageEl = document.getElementById("generateMessage");
+
+      try {
+        const result = await generateWeeklyEmails(refSunday || undefined);
+        messageEl.textContent = `Generated ${result.emailsGenerated} email(s) for the week after ${result.refSunday}.`;
+        loadEmails();
+      } catch (err) {
+        messageEl.textContent = "Error: " + err.message;
+      }
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const receiver = document.getElementById("searchReceiver").value;
+      loadEmails(receiver);
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      document.getElementById("searchReceiver").value = "";
+      loadEmails();
+    });
+
+    loadEmails();
+  </script>
+
+</body>
+</html>

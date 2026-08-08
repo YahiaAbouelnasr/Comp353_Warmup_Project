@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team Formations</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <h1>Team Formations</h1>
+  <a href="../index.html" class="btn-home">Back to Home</a>
+
+  <h2>Schedule a Session</h2>
+  <p>A session always has exactly two team formations (per spec).</p>
+  <form id="sessionForm">
+    <label>Date &amp; Time</label>
+    <input type="datetime-local" id="sessionDateTime" required><br>
+
+    <label>Address</label>
+    <input type="text" id="sessionAddress" required><br>
+
+    <label>Nature</label>
+    <select id="sessionNature" required>
+      <option>Training</option>
+      <option>Game</option>
+    </select><br>
+
+    <h3>Team A</h3>
+    <label>Team</label>
+    <select id="teamA" required></select><br>
+    <label>Head Coach</label>
+    <select id="coachA" required></select><br>
+    <label>Score</label>
+    <input type="number" id="scoreA"><br>
+
+    <h3>Team B</h3>
+    <label>Team</label>
+    <select id="teamB" required></select><br>
+    <label>Head Coach</label>
+    <select id="coachB" required></select><br>
+    <label>Score</label>
+    <input type="number" id="scoreB"><br>
+
+    <button type="submit">Create Session</button>
+  </form>
+  <p id="sessionMessage"></p>
+
+  <h2>All Sessions</h2>
+  <table border="1" id="sessionsTable">
+    <thead>
+      <tr>
+        <th>Session</th>
+        <th>Date/Time</th>
+        <th>Address</th>
+        <th>Nature</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="sessionsBody"></tbody>
+  </table>
+
+  <h2 id="detailTitle" style="display:none;">Session Detail</h2>
+  <div id="sessionDetail"></div>
+
+  <h2>Assign a Club Member to a Formation</h2>
+  <p>If the member already has a conflicting assignment within 3 hours on the same day, this will be rejected.</p>
+  <form id="assignForm">
+    <label>Club Member #</label>
+    <input type="number" id="assignMemberNo" required><br>
+
+    <label>Team ID</label>
+    <input type="number" id="assignTeamID" required><br>
+
+    <label>Session ID</label>
+    <input type="number" id="assignSessionID" required><br>
+
+    <label>Role</label>
+    <select id="assignRole" required>
+      <option>Goalkeeper</option>
+      <option>Right Fullback</option>
+      <option>Left Fullback</option>
+      <option>Center Back</option>
+      <option>Sweeper</option>
+      <option>Defending Midfielder</option>
+      <option>Right Winger</option>
+      <option>Central Midfielder</option>
+      <option>Striker</option>
+      <option>Attacking Midfielder</option>
+      <option>Left Winger</option>
+    </select><br>
+
+    <button type="submit">Assign Member</button>
+  </form>
+  <p id="assignMessage"></p>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const teamA = document.getElementById("teamA");
+    const teamB = document.getElementById("teamB");
+    const coachA = document.getElementById("coachA");
+    const coachB = document.getElementById("coachB");
+    const sessionMessage = document.getElementById("sessionMessage");
+    const detailTitle = document.getElementById("detailTitle");
+    const sessionDetail = document.getElementById("sessionDetail");
+
+    async function loadTeamAndCoachOptions() {
+      const [teams, personnel] = await Promise.all([getTeams(), getPersonnel()]);
+
+      const teamOptions = teams
+        .map(t => `<option value="${t.teamID}">${t.teamName} (${t.locationName})</option>`)
+        .join("");
+      teamA.innerHTML = teamOptions;
+      teamB.innerHTML = teamOptions;
+
+      const coachOptions = personnel
+        .map(p => `<option value="${p.personnelID}">${p.firstName} ${p.lastName}</option>`)
+        .join("");
+      coachA.innerHTML = coachOptions;
+      coachB.innerHTML = coachOptions;
+    }
+
+    async function loadSessions() {
+      const sessions = await getSessions();
+      const body = document.getElementById("sessionsBody");
+      body.innerHTML = "";
+
+      sessions.forEach(s => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${s.sessionID}</td>
+          <td>${s.sessionDateTime}</td>
+          <td>${s.address}</td>
+          <td>${s.nature}</td>
+          <td>
+            <button onclick="viewSession(${s.sessionID})">View</button>
+            <button onclick="removeSession(${s.sessionID})">Delete</button>
+          </td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    async function viewSession(sessionID) {
+      const session = await getSession(sessionID);
+      detailTitle.style.display = "block";
+      detailTitle.textContent = `Session ${session.sessionID} - ${session.sessionDateTime} (${session.nature})`;
+
+      sessionDetail.innerHTML = session.formations
+        .map(f => `
+          <h3>${f.teamName} - Head Coach: ${f.headCoach}${f.score !== null ? ` - Score: ${f.score}` : ""}</h3>
+          <table border="1">
+            <thead><tr><th>Member #</th><th>Name</th><th>Role</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${f.roster
+                .map(
+                  r => `
+                <tr>
+                  <td>${r.memberNo}</td>
+                  <td>${r.firstName} ${r.lastName}</td>
+                  <td>${r.role}</td>
+                  <td><button onclick="removeAssignment(${f.teamID}, ${session.sessionID}, ${r.memberNo})">Remove</button></td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `)
+        .join("");
+    }
+
+    async function removeAssignment(teamID, sessionID, memberNo) {
+      if (confirm("Remove this member from the formation?")) {
+        await deleteAssignment(teamID, sessionID, memberNo);
+        viewSession(sessionID);
+      }
+    }
+
+    async function removeSession(sessionID) {
+      if (confirm("Delete this session (and all its formations/assignments)?")) {
+        await deleteSession(sessionID);
+        detailTitle.style.display = "none";
+        sessionDetail.innerHTML = "";
+        loadSessions();
+      }
+    }
+
+    document.getElementById("sessionForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        sessionDateTime: document.getElementById("sessionDateTime").value.replace("T", " ") + ":00",
+        address: document.getElementById("sessionAddress").value,
+        nature: document.getElementById("sessionNature").value,
+        formations: [
+          {
+            teamID: teamA.value,
+            personnelID: coachA.value,
+            score: document.getElementById("scoreA").value || null,
+          },
+          {
+            teamID: teamB.value,
+            personnelID: coachB.value,
+            score: document.getElementById("scoreB").value || null,
+          },
+        ],
+      };
+
+      try {
+        await createSession(data);
+        sessionMessage.textContent = "Session created.";
+        e.target.reset();
+        loadSessions();
+      } catch (err) {
+        sessionMessage.textContent = "Error: " + err.message;
+      }
+    });
+
+    document.getElementById("assignForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const teamID = document.getElementById("assignTeamID").value;
+      const sessionID = document.getElementById("assignSessionID").value;
+      const data = {
+        memberNo: document.getElementById("assignMemberNo").value,
+        role: document.getElementById("assignRole").value,
+      };
+
+      const messageEl = document.getElementById("assignMessage");
+
+      try {
+        await assignMember(teamID, sessionID, data);
+        messageEl.textContent = "Member assigned successfully.";
+        e.target.reset();
+      } catch (err) {
+        messageEl.textContent = "Error: " + err.message;
+      }
+    });
+
+    loadTeamAndCoachOptions();
+    loadSessions();
+  </script>
+
+</body>
+</html>
