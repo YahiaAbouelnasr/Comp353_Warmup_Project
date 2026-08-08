@@ -12,20 +12,33 @@
 
   <h2>Choose a Report</h2>
   <select id="reportSelect">
-    <option value="query8">Query 8 - Locations with 2+ members in a FIFA game</option>
-    <option value="query9">Query 9 - Primary family members with 2+ members in a FIFA game</option>
-    <option value="query10">Query 10 - Team formations for a location & date range</option>
-    <option value="query11">Query 11 - Members with 5+ FIFA game appearances</option>
-    <option value="query12">Query 12 - Session totals per location for a date range</option>
-    <option value="query13">Query 13 - Active members never assigned but played a FIFA game</option>
-    <option value="query14">Query 14 - Major members who joined as minors</option>
-    <option value="query15">Query 15 - Members who have only ever played Goalkeeper</option>
-    <option value="query16">Query 16 - Members assigned to 5 specific roles at least once</option>
-    <option value="query17">Query 17 - Family members who are also head coaches</option>
-    <option value="query18">Query 18 - Active members who have never won a game</option>
-    <option value="query19">Query 19 - Volunteer personnel who are also family members</option>
-  </select>
+    <option value="locations-fifa-players">Query 8 - Locations with 2+ members in a FIFA game</option>
+    <option value="primary-family-fifa">Query 9 - Primary family members with 2+ members in a FIFA game</option>
+    <option value="team-formations">Query 10 - Team formations for a location &amp; date range</option>
+    <option value="frequent-fifa-players">Query 11 - Members with 5+ FIFA game appearances</option>
+    <option value="formations-summary">Query 12 - Session totals per location for a date range</option>
+    <option value="never-assigned-fifa">Query 13 - Active members never assigned but played a FIFA game</option>
+    <option value="majors-since-minors">Query 14 - Major members who joined as minors</option>
+    <option value="goalkeeper-only">Query 15 - Members who have only ever played Goalkeeper</option>
+    <option value="all-five-roles">Query 16 - Members assigned to 5 specific roles at least once</option>
+    <option value="head-coach-family">Query 17 - Family members who are also head coaches</option>
+    <option value="never-won">Query 18 - Active members who have never won a game</option>
+    <option value="volunteer-family-fifa">Query 19 - Volunteer personnel who are also family members</option>
+  </select><br>
+
+  <div id="reportParams">
+    <label>Location ID <span id="locationIDHint"></span></label>
+    <input type="number" id="paramLocationID"><br>
+
+    <label>Start Date <span id="startHint"></span></label>
+    <input type="date" id="paramStart"><br>
+
+    <label>End Date <span id="endHint"></span></label>
+    <input type="date" id="paramEnd"><br>
+  </div>
+
   <button id="runBtn">Run Report</button>
+  <p id="reportMessage"></p>
 
   <h2 id="reportTitle">Results</h2>
   <table border="1" id="reportTable">
@@ -35,30 +48,62 @@
 
   <script src="../js/api.js"></script>
   <script>
+    function updateParamHints() {
+      const key = document.getElementById("reportSelect").value;
+      const needed = (REPORTS[key] && REPORTS[key].params) || [];
+      document.getElementById("locationIDHint").textContent = needed.includes("locationID") ? "(required)" : "(not used)";
+      document.getElementById("startHint").textContent = needed.includes("start") ? "(required)" : "(not used)";
+      document.getElementById("endHint").textContent = needed.includes("end") ? "(required)" : "(not used)";
+    }
+
+    document.getElementById("reportSelect").addEventListener("change", updateParamHints);
+
     async function runReport() {
       const reportId = document.getElementById("reportSelect").value;
       const selectedText = document.getElementById("reportSelect").selectedOptions[0].textContent;
       document.getElementById("reportTitle").textContent = selectedText;
+      const messageEl = document.getElementById("reportMessage");
+      messageEl.textContent = "";
 
-      const result = await getReport(reportId);
-      const columns = result.columns;
-      const rows = result.rows;
+      const needed = (REPORTS[reportId] && REPORTS[reportId].params) || [];
+      const params = {};
+      if (needed.includes("locationID")) params.locationID = document.getElementById("paramLocationID").value;
+      if (needed.includes("start")) params.start = document.getElementById("paramStart").value;
+      if (needed.includes("end")) params.end = document.getElementById("paramEnd").value;
 
+      if (needed.some(p => !params[p])) {
+        messageEl.textContent = "This report needs: " + needed.join(", ");
+        return;
+      }
+
+      let rows;
+      try {
+        rows = await getReport(reportId, params);
+      } catch (err) {
+        messageEl.textContent = "Error: " + err.message;
+        return;
+      }
+
+      const columns = rows.length ? Object.keys(rows[0]) : [];
       const head = document.getElementById("reportHead");
       head.innerHTML = "<tr>" + columns.map(c => `<th>${c}</th>`).join("") + "</tr>";
 
       const body = document.getElementById("reportBody");
-      body.innerHTML = "";
+      body.innerHTML = rows
+        .map(
+          row =>
+            "<tr>" +
+            columns.map(c => `<td>${row[c] !== null && row[c] !== undefined ? row[c] : ""}</td>`).join("") +
+            "</tr>"
+        )
+        .join("");
 
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = row.map(cell => `<td>${cell}</td>`).join("");
-        body.appendChild(tr);
-      });
+      if (!rows.length) messageEl.textContent = "No results.";
     }
 
     document.getElementById("runBtn").addEventListener("click", runReport);
 
+    updateParamHints();
     runReport();
   </script>
 

@@ -64,7 +64,6 @@
     text-decoration: none;
   }
   
-  /* Homepage nav */
   nav ul {
     list-style: none;
     padding: 0;
@@ -141,7 +140,6 @@
     background: #f3f4f6;
   }
   
-  /* Tables, also styled like a card */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -173,5 +171,9 @@
   }
 
   #formTitle {
+    color: var(--bg);
+  }
+
+  #reportParams {
     color: var(--bg);
   }

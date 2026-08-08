@@ -33,6 +33,7 @@
 
     <button type="submit">Record Payment</button>
   </form>
+  <p id="paymentMessage"></p>
 
   <h2>Payment History</h2>
   <label>Search by Club Member #</label>
@@ -46,6 +47,7 @@
         <th>Date</th>
         <th>Amount</th>
         <th>Method</th>
+        <th>Year</th>
       </tr>
     </thead>
     <tbody id="paymentsBody"></tbody>
@@ -65,6 +67,7 @@
           <td>${p.paymentDate}</td>
           <td>${p.amount}</td>
           <td>${p.method}</td>
+          <td>${p.memYear}</td>
         `;
         body.appendChild(row);
       });
@@ -73,17 +76,25 @@
     document.getElementById("paymentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
+      const memberNo = document.getElementById("memberNo").value;
       const data = {
-        memberNo: document.getElementById("memberNo").value,
+        memberNo,
         paymentDate: document.getElementById("paymentDate").value,
         amount: document.getElementById("amount").value,
         method: document.getElementById("method").value,
-        membershipYear: document.getElementById("membershipYear").value
+        memYear: document.getElementById("membershipYear").value,
       };
 
-      await createPayment(data);
-      e.target.reset();
-      loadPayments();
+      const messageEl = document.getElementById("paymentMessage");
+
+      try {
+        await createPayment(data);
+        messageEl.textContent = "Payment recorded.";
+        e.target.reset();
+        loadPayments(memberNo);
+      } catch (err) {
+        messageEl.textContent = "Error: " + err.message;
+      }
     });
 
     document.getElementById("searchBtn").addEventListener("click", () => {

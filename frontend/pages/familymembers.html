@@ -47,9 +47,13 @@
     <label>Postal Code</label>
     <input type="text" id="postalCode" required><br>
 
+    <label>Registered At</label>
+    <select id="locationID" required></select><br>
+
     <button type="submit" id="submitBtn">Add Family Member</button>
     <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
   </form>
+  <p id="formMessage"></p>
 
   <h2>All Family Members</h2>
   <table border="1" id="familyTable">
@@ -58,11 +62,44 @@
         <th>ID</th>
         <th>Name</th>
         <th>City</th>
+        <th>Location</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody id="familyBody"></tbody>
   </table>
+
+  <h2>Link a Family Member as a Minor's Guardian</h2>
+  <p>Links the selected family member to the selected minor club member (Item 3's Primary/Secondary guardian relationship).</p>
+  <form id="linkForm">
+    <label>Family Member</label>
+    <select id="linkFamilyID" required></select><br>
+
+    <label>Minor (Club Member)</label>
+    <select id="linkMemberNo" required></select><br>
+
+    <label>Relationship</label>
+    <select id="linkRelationship" required>
+      <option>Father</option>
+      <option>Mother</option>
+      <option>Grandfather</option>
+      <option>Grandmother</option>
+      <option>Tutor</option>
+      <option>Partner</option>
+      <option>Friend</option>
+      <option>Other</option>
+    </select><br>
+
+    <label>Family Type</label>
+    <select id="linkFamilyType" required>
+      <option value="Primary">Primary</option>
+      <option value="Secondary">Secondary</option>
+    </select><br>
+
+    <button type="submit" id="linkSubmitBtn">Link</button>
+    <button type="button" id="unlinkToggleBtn">Unlink Instead</button>
+  </form>
+  <p id="linkMessage"></p>
 
   <script src="../js/api.js"></script>
   <script>
@@ -70,32 +107,69 @@
     const submitBtn = document.getElementById("submitBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const formTitle = document.getElementById("formTitle");
+    const formMessage = document.getElementById("formMessage");
+    const locationSelect = document.getElementById("locationID");
+
+    let familyCache = [];
+
+    async function loadLocationOptions() {
+      const locations = await getLocations();
+      locationSelect.innerHTML = locations
+        .map(l => `<option value="${l.locationID}">${l.name}</option>`)
+        .join("");
+    }
 
     async function loadFamilyMembers() {
-      const familyMembers = await getFamilyMembers();
+      familyCache = await getFamilyMembers();
       const body = document.getElementById("familyBody");
       body.innerHTML = "";
 
-      familyMembers.forEach(f => {
+      familyCache.forEach(f => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${f.familyID}</td>
           <td>${f.firstName} ${f.lastName}</td>
-          <td>${f.city}</td>
+          <td>${f.city || ""}</td>
+          <td>${f.currentLocation || ""}</td>
           <td>
-            <button onclick="editFamilyMember(${f.familyID}, '${f.firstName}', '${f.lastName}', '${f.city}')">Edit</button>
+            <button onclick="editFamilyMember(${f.familyID})">Edit</button>
             <button onclick="removeFamilyMember(${f.familyID})">Delete</button>
           </td>
         `;
         body.appendChild(row);
       });
+
+      const linkFamilySelect = document.getElementById("linkFamilyID");
+      linkFamilySelect.innerHTML = familyCache
+        .map(f => `<option value="${f.familyID}">${f.firstName} ${f.lastName} (#${f.familyID})</option>`)
+        .join("");
     }
 
-    function editFamilyMember(id, firstName, lastName, city) {
-      document.getElementById("familyID").value = id;
-      document.getElementById("firstName").value = firstName;
-      document.getElementById("lastName").value = lastName;
-      document.getElementById("city").value = city;
+    async function loadMinorOptions() {
+      const minors = await getMinors();
+      const linkMemberSelect = document.getElementById("linkMemberNo");
+      linkMemberSelect.innerHTML = minors
+        .map(m => `<option value="${m.memberNo}">${m.firstName} ${m.lastName} (#${m.memberNo})</option>`)
+        .join("");
+    }
+
+    function editFamilyMember(id) {
+      const f = familyCache.find(x => x.familyID === id);
+      if (!f) return;
+
+      document.getElementById("familyID").value = f.familyID;
+      document.getElementById("firstName").value = f.firstName;
+      document.getElementById("lastName").value = f.lastName;
+      document.getElementById("dob").value = f.dob;
+      document.getElementById("ssn").value = f.ssn || "";
+      document.getElementById("medicareNo").value = f.medicareNo || "";
+      document.getElementById("phone").value = f.phone;
+      document.getElementById("email").value = f.email || "";
+      document.getElementById("address").value = f.address || "";
+      document.getElementById("city").value = f.city || "";
+      document.getElementById("province").value = f.province || "";
+      document.getElementById("postalCode").value = f.postalCode;
+      if (f.currentLocationID) locationSelect.value = f.currentLocationID;
 
       formTitle.textContent = "Edit Family Member";
       submitBtn.textContent = "Save Changes";
@@ -108,6 +182,7 @@
       formTitle.textContent = "Add a Family Member";
       submitBtn.textContent = "Add Family Member";
       cancelBtn.style.display = "none";
+      formMessage.textContent = "";
     }
 
     cancelBtn.addEventListener("click", resetForm);
@@ -127,27 +202,69 @@
         address: document.getElementById("address").value,
         city: document.getElementById("city").value,
         province: document.getElementById("province").value,
-        postalCode: document.getElementById("postalCode").value
+        postalCode: document.getElementById("postalCode").value,
+        locationID: locationSelect.value,
       };
 
-      if (id) {
-        await updateFamilyMember(id, data);
-      } else {
-        await createFamilyMember(data);
+      try {
+        if (id) {
+          await updateFamilyMember(id, data);
+        } else {
+          await createFamilyMember(data);
+        }
+        resetForm();
+        loadFamilyMembers();
+      } catch (err) {
+        formMessage.textContent = "Error: " + err.message;
       }
-
-      resetForm();
-      loadFamilyMembers();
     });
 
     async function removeFamilyMember(id) {
       if (confirm("Delete this family member?")) {
-        await deleteFamilyMember(id);
-        loadFamilyMembers();
+        try {
+          await deleteFamilyMember(id);
+          loadFamilyMembers();
+        } catch (err) {
+          formMessage.textContent = "Error: " + err.message;
+        }
       }
     }
 
-    loadFamilyMembers();
+    const linkForm = document.getElementById("linkForm");
+    const linkMessage = document.getElementById("linkMessage");
+    const linkSubmitBtn = document.getElementById("linkSubmitBtn");
+    const unlinkToggleBtn = document.getElementById("unlinkToggleBtn");
+    let unlinkMode = false;
+
+    unlinkToggleBtn.addEventListener("click", () => {
+      unlinkMode = !unlinkMode;
+      linkSubmitBtn.textContent = unlinkMode ? "Unlink" : "Link";
+      unlinkToggleBtn.textContent = unlinkMode ? "Link Instead" : "Unlink Instead";
+    });
+
+    linkForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const familyID = document.getElementById("linkFamilyID").value;
+      const memberNo = document.getElementById("linkMemberNo").value;
+
+      try {
+        if (unlinkMode) {
+          await unlinkFamilyMemberFromMinor(familyID, memberNo);
+          linkMessage.textContent = "Unlinked.";
+        } else {
+          const relationship = document.getElementById("linkRelationship").value;
+          const familyType = document.getElementById("linkFamilyType").value;
+          await linkFamilyMemberToMinor(familyID, { memberNo, relationship, familyType });
+          linkMessage.textContent = "Linked.";
+        }
+      } catch (err) {
+        linkMessage.textContent = "Error: " + err.message;
+      }
+    });
+
+    loadLocationOptions()
+      .then(loadFamilyMembers)
+      .then(loadMinorOptions);
   </script>
 
 </body>
