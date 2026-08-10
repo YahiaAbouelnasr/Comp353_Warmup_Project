@@ -64,12 +64,14 @@
     const cancelBtn = document.getElementById("cancelBtn");
     const formTitle = document.getElementById("formTitle");
 
+    let locationsCache = [];
+
     async function loadLocations() {
-      const locations = await getLocations();
+      locationsCache = await getLocations();
       const body = document.getElementById("locationsBody");
       body.innerHTML = "";
 
-      locations.forEach(loc => {
+      locationsCache.forEach(loc => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${loc.locationID}</td>
@@ -78,7 +80,7 @@
           <td>${loc.city}</td>
           <td>${loc.capacity}</td>
           <td>
-            <button onclick="editLocation(${loc.locationID}, '${loc.type}', '${loc.name}', '${loc.city}', ${loc.capacity})">Edit</button>
+            <button onclick="editLocation(${loc.locationID})">Edit</button>
             <button onclick="removeLocation(${loc.locationID})">Delete</button>
           </td>
         `;
@@ -86,12 +88,18 @@
       });
     }
 
-    function editLocation(id, type, name, city, capacity) {
-      document.getElementById("locationID").value = id;
-      document.getElementById("type").value = type;
-      document.getElementById("name").value = name;
-      document.getElementById("city").value = city;
-      document.getElementById("capacity").value = capacity;
+    function editLocation(id) {
+      const loc = locationsCache.find(x => x.locationID === id);
+      if (!loc) return;
+
+      document.getElementById("locationID").value = loc.locationID;
+      document.getElementById("type").value = loc.type;
+      document.getElementById("name").value = loc.name;
+      document.getElementById("address").value = loc.address;
+      document.getElementById("city").value = loc.city;
+      document.getElementById("province").value = loc.province;
+      document.getElementById("postalCode").value = loc.postalCode;
+      document.getElementById("capacity").value = loc.capacity;
 
       formTitle.textContent = "Edit Location";
       submitBtn.textContent = "Save Changes";
